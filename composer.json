@@ -1,0 +1,13 @@
+{
+    "name": "wanpinghui/shorturl",
+    "description": "wanpinghui, shorurl",
+    "license": "MIT",
+    "require": {
+        "php": "^5.3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "wanpinghui\\short_url\\": ""
+        }
+    }
+}
