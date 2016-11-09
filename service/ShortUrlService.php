@@ -11,23 +11,19 @@ use yii\base\InvalidConfigException;
  *
  */
 class ShortUrlService extends \yii\base\Component{
-    const SHORT_URL = 'short_url';
+    const SHORT_URL_PRE = 'st:';
     public $redisConfig = [];
     private $redis = null;
 
     public function init(){
-        $this->redis = new Predis();
         if(!$this->redisConfig){
             throw new InvalidConfigException();
         }
-        $config = $this->redisConfig[0];
-        $this->redis->connect($config['host'], $config['port']);
-        if(!empty($config['password'])){
-            $this->redis->auth($config['password']);
+        $config = $this->redisConfig;
+        if(empty($config['password'])){
+            unset($config['password']);
         }
-        if(!empty($config['database'])){
-            $this->redis->select($config['database']);
-        }
+        $this->redis = new Predis($config);
     }
 
     /**
@@ -37,7 +33,11 @@ class ShortUrlService extends \yii\base\Component{
      * @return int
      */
     public function setUrl($short_tag, $url){
-        return $this->redis->hSet(self::SHORT_URL, $short_tag, $url);
+        $result = $this->redis->set(self::SHORT_URL_PRE.$short_tag, $url);
+        if(isset($this->redisConfig['expire'])){
+            $this->redis->expire(self::SHORT_URL_PRE.$short_tag, $this->redisConfig['expire']);
+        }
+        return $result;
     }
 
     /**
@@ -45,6 +45,10 @@ class ShortUrlService extends \yii\base\Component{
      * @param unknown $short_tag
      */
     public function getUrl($short_tag){
-        return $this->redis->hGet(self::SHORT_URL, $short_tag);
+        $value = $this->redis->get(self::SHORT_URL_PRE.$short_tag);
+        if($value && isset($this->redisConfig['expire'])){
+            $this->redis->expire(self::SHORT_URL_PRE.$short_tag, $this->redisConfig['expire']);
+        }
+        return $value;
     }
 }
