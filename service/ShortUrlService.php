@@ -23,7 +23,9 @@ class ShortUrlService extends \yii\base\Component{
         if(empty($config['password'])){
             unset($config['password']);
         }
+
         $this->redis = new Predis($config);
+
     }
 
     /**
@@ -33,9 +35,14 @@ class ShortUrlService extends \yii\base\Component{
      * @return int
      */
     public function setUrl($short_tag, $url){
-        $result = $this->redis->set(self::SHORT_URL_PRE.$short_tag, $url);
-        if(isset($this->redisConfig['expire'])){
-            $this->redis->expire(self::SHORT_URL_PRE.$short_tag, $this->redisConfig['expire']);
+        $result = 0;
+        try{
+            $result = $this->redis->set(self::SHORT_URL_PRE.$short_tag, $url);
+            if(isset($this->redisConfig['expire'])){
+                $this->redis->expire(self::SHORT_URL_PRE.$short_tag, $this->redisConfig['expire']);
+            }
+        }catch (\Exception $e){
+            Yii::error($e->getMessage(), __METHOD__);
         }
         return $result;
     }
@@ -45,9 +52,14 @@ class ShortUrlService extends \yii\base\Component{
      * @param unknown $short_tag
      */
     public function getUrl($short_tag){
-        $value = $this->redis->get(self::SHORT_URL_PRE.$short_tag);
-        if($value && isset($this->redisConfig['expire'])){
-            $this->redis->expire(self::SHORT_URL_PRE.$short_tag, $this->redisConfig['expire']);
+        $value = '';
+        try{
+            $value = $this->redis->get(self::SHORT_URL_PRE.$short_tag);
+            if($value && isset($this->redisConfig['expire'])){
+                $this->redis->expire(self::SHORT_URL_PRE.$short_tag, $this->redisConfig['expire']);
+            }
+        }catch (\Exception $e){
+            Yii::error($e->getMessage(), __METHOD__);
         }
         return $value;
     }
