@@ -3,7 +3,6 @@
 namespace wanpinghui\shorturl\controllers;
 
 use Yii;
-use wanpinghui\shorturl\models\ShortUrl;
 use yii\base\Component;
 
 /**
@@ -16,9 +15,9 @@ class ShortUrlController extends \yii\web\Controller{
     public function actionIndex(){
         $short_tag = !empty($_GET['short_tag']) ? $_GET['short_tag'] : '';
         if($short_tag){
-            echo ShortUrl::getUrl($short_tag);
+            echo Yii::$app->shortUrlService->getShortUrl($short_tag);
         }else{
-            echo ShortUrl::genShortTag('http://www.baidu.com', 3, 'peterxu2016');
+            echo Yii::$app->shortUrlService->getShortTag('http://www.baidu.com', 3, 'peterxu2016');
         }
     }
     /**
@@ -26,6 +25,6 @@ class ShortUrlController extends \yii\web\Controller{
      * @since v1.1
      */
     public function actionGetUrl($short_tag){
-        return ShortUrl::getUrl($short_tag);
+        return Yii::$app->shortUrlService->getShortUrl($short_tag);
     }
 }
