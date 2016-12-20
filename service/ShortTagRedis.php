@@ -5,13 +5,15 @@ namespace wanpinghui\shorturl\service;
 use Yii;
 use Predis\Client as Predis;
 use yii\base\InvalidConfigException;
+
+
 /**
  * 短链接存放
  * @author peter
  *
  */
-class ShortUrlRedis extends \yii\base\Component{
-    const SHORT_URL_PRE = 'st:';
+class ShortTagRedis extends \yii\base\Component{
+    public $short_tag_pre = 'st:';
     public $redisConfig = [];
     private $redis = null;
 
@@ -35,9 +37,9 @@ class ShortUrlRedis extends \yii\base\Component{
     public function setUrl($short_tag, $url){
         $result = 0;
         try{
-            $result = $this->redis->set(self::SHORT_URL_PRE.$short_tag, $url);
+            $result = $this->redis->set($this->short_tag_pre.$short_tag, $url);
             if(isset($this->redisConfig['expire'])){
-                $this->redis->expire(self::SHORT_URL_PRE.$short_tag, $this->redisConfig['expire']);
+                $this->redis->expire($this->short_tag_pre.$short_tag, $this->redisConfig['expire']);
             }
         }catch (\Exception $e){
             Yii::error($e->getMessage(), __METHOD__);
@@ -52,9 +54,9 @@ class ShortUrlRedis extends \yii\base\Component{
     public function getUrl($short_tag){
         $value = '';
         try{
-            $value = $this->redis->get(self::SHORT_URL_PRE.$short_tag);
+            $value = $this->redis->get($this->short_tag_pre.$short_tag);
             if($value && isset($this->redisConfig['expire'])){
-                $this->redis->expire(self::SHORT_URL_PRE.$short_tag, $this->redisConfig['expire']);
+                $this->redis->expire($this->short_tag_pre.$short_tag, $this->redisConfig['expire']);
             }
         }catch (\Exception $e){
             Yii::error($e->getMessage(), __METHOD__);

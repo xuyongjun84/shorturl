@@ -4,6 +4,7 @@ namespace wanpinghui\shorturl\service;
 
 use Yii;
 use wanpinghui\shorturl\models\ShortUrlModel;
+
 /**
  * @author peter
  * @tutorial 生成短链接原理：
@@ -14,7 +15,7 @@ use wanpinghui\shorturl\models\ShortUrlModel;
  * 1、根据短链接转换成数据库主键id，查询数据库，存在则返回长链接;
  * 2、如果不存在，则直接退出
  */
-class ShortUrlService extends \yii\base\Component{
+class ShortUrlService extends \yii\base\Component implements IShortUrl{
 
     public $long_url = '';
     const ALLOWED_CHARS = '0b1c5lvqz3i7j4sx8oh2nfe9trm6gdauwpyk'; // 10个数字+26个字母；
@@ -39,31 +40,31 @@ class ShortUrlService extends \yii\base\Component{
      * @param unknown $base
      * @return string
      */
-    private static function getShortTagFromID ($integer)
+    private static function getShortTagFromID ($id)
     {
         $base = self::ALLOWED_CHARS;
         $length = strlen($base);
         $out = '';
-        $integer = intval($integer);
-        while($integer > $length - 1)
+        $id = intval($id);
+        while($id > $length - 1)
         {
-            $index = intval(fmod($integer, $length));
+            $index = intval(fmod($id, $length));
             $out = $base[$index] . $out;
-            $integer = intval(floor( $integer / $length ));
+            $id = intval(floor( $id / $length ));
         }
-        return $base[$integer] . $out;
+        return $base[$id] . $out;
     }
 
     /**
-     * 根据短链接获取链接
+     * 根据$short_tag获取原始链接
      * @param unknown $short_tag
      * @return string|unknown
      */
-    public function getShortUrl($short_tag){
+    public function getUrl($short_tag){
         if(!$short_tag){
             return '';
         }
-        $short_url = Yii::$app->shortUrlRedis->getUrl($short_tag);
+        $short_url = Yii::$app->shortTagRedis->getUrl($short_tag);
         if(!$short_url){
             $id = self::getIdFromShortTag($short_tag);
             if($id > 3000000000){ // 数据库表id从30亿开始，使得short_tag达到6位；
@@ -72,31 +73,28 @@ class ShortUrlService extends \yii\base\Component{
                 $short_url = ShortUrlModel::getShortUrlByTag($short_tag);
             }
             if($short_url){
-                Yii::$app->shortUrlRedis->setUrl($short_tag, $short_url);
+                Yii::$app->shortTagRedis->setUrl($short_tag, $short_url);
             }
         }
         return $short_url;
     }
 
     /**
-     * 生成短链接
+     * 生成$short_tag
      * @param unknown $query
      * @return \app\components\Ambigous
      */
-    function getShortTag($target_url, $demand_id, $user_id){
-        eval("\$target_url = \"{$target_url}\";");
-        $target_url = urlencode($target_url);
-        eval("\$long_url=\"{$this->long_url}\";");
-        $short_tag = ShortUrlModel::getShortTag($long_url);
+    function getShortTag($long_url){
+        $short_tag = ShortUrlModel::getShortTag($long_url); // 首先从db中获取
         if(!$short_tag){
             $id = ShortUrlModel::saveToDb($long_url);
             $short_tag = self::getShortTagFromID($id);
             ShortUrlModel::updateShortTag($id, $short_tag);
         }
         if(!$short_tag){
-            Yii::error("生成短链接错误：{$long_url}", __METHOD__);
+            Yii::error("生成short_tag错误：{$long_url}", __METHOD__);
         }
-        Yii::$app->shortUrlRedis->setUrl($short_tag, $long_url);
+        Yii::$app->shortTagRedis->setUrl($short_tag, $long_url);
         return $short_tag;
     }
 }
