@@ -15,7 +15,7 @@ use yii\db\Query;
 class ShortUrlModel extends  ActiveRecord
 {
     public static function getDb(){
-        return Yii::$app->db_short_url;
+        return Yii::$app->shortTagDb;
     }
 
     /**

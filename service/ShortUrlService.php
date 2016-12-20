@@ -17,7 +17,6 @@ use wanpinghui\shorturl\models\ShortUrlModel;
  */
 class ShortUrlService extends \yii\base\Component implements IShortUrl{
 
-    public $long_url = '';
     const ALLOWED_CHARS = '0b1c5lvqz3i7j4sx8oh2nfe9trm6gdauwpyk'; // 10个数字+26个字母；
 
     private static function getIdFromShortTag($short_tag)
@@ -64,7 +63,7 @@ class ShortUrlService extends \yii\base\Component implements IShortUrl{
         if(!$short_tag){
             return '';
         }
-        $short_url = Yii::$app->shortTagRedis->getUrl($short_tag);
+        $short_url = Yii::$app->shortTagRedis->get($short_tag);
         if(!$short_url){
             $id = self::getIdFromShortTag($short_tag);
             if($id > 3000000000){ // 数据库表id从30亿开始，使得short_tag达到6位；
@@ -73,7 +72,7 @@ class ShortUrlService extends \yii\base\Component implements IShortUrl{
                 $short_url = ShortUrlModel::getShortUrlByTag($short_tag);
             }
             if($short_url){
-                Yii::$app->shortTagRedis->setUrl($short_tag, $short_url);
+                Yii::$app->shortTagRedis->set($short_tag, $short_url);
             }
         }
         return $short_url;
@@ -94,7 +93,7 @@ class ShortUrlService extends \yii\base\Component implements IShortUrl{
         if(!$short_tag){
             Yii::error("生成short_tag错误：{$long_url}", __METHOD__);
         }
-        Yii::$app->shortTagRedis->setUrl($short_tag, $long_url);
+        Yii::$app->shortTagRedis->set($short_tag, $long_url);
         return $short_tag;
     }
 }
