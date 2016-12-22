@@ -1,6 +1,6 @@
 {
     "name": "wanpinghui/shorturl",
-    "description": "wanpinghui, shorurl",
+    "description": "Yii2,wanpinghui, shorturl",
     "license": "MIT",
     "require": {
         "php": "^5.3.3"
