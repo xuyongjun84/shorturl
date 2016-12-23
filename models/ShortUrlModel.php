@@ -12,7 +12,7 @@ use yii\db\Query;
  * @property string $short_tag
  * @property string $short_url
  */
-class ShortUrlModel extends  ActiveRecord
+class ShortUrlModel extends ActiveRecord
 {
     public static function getDb(){
         return Yii::$app->shortTagDb;
